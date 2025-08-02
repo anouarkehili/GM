@@ -1,42 +1,87 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./dashboard.db');
 
-// بيانات افتراضية
-const stats = [
-  ['المشتركون النشطون', '142', '+12 هذا الشهر', 'positive', 'Users', 'blue'],
-  ['الاشتراكات المنتهية', '8', 'تنتهي خلال أسبوع', 'negative', 'AlertTriangle', 'red'],
-  ['حضور اليوم', '47', '+5 من أمس', 'positive', 'Calendar', 'green'],
-  ['مبيعات اليوم', '4,250 دج', '+15% من أمس', 'positive', 'ShoppingCart', 'orange'],
+// بيانات افتراضية محسنة
+const subscriptions = [
+  ['أحمد محمد علي', 'اشتراك شهري عادي', '2024-02-15', 15, 2300, '0555123456', 'ahmed@email.com', 'active'],
+  ['فاطمة سعد الدين', 'اشتراك شهري مع جهاز المشي', '2024-02-20', 20, 3500, '0555234567', 'fatima@email.com', 'active'],
+  ['خالد عبد الرحمن', 'اشتراك 15 حصة', '2024-02-10', 10, 2000, '0555345678', 'khalid@email.com', 'active'],
+  ['مريم أحمد', 'اشتراك شهري عادي', '2024-01-25', 5, 2300, '0555456789', 'mariam@email.com', 'active'],
+  ['يوسف عمر', 'اشتراك 15 حصة مع جهاز المشي', '2024-02-05', 8, 3000, '0555567890', 'youssef@email.com', 'active'],
+  ['نور الهدى', 'اشتراك جهاز المشي فقط (شهري)', '2024-01-30', 3, 2300, '0555678901', 'nour@email.com', 'active'],
+  ['محمد صالح', 'اشتراك شهري عادي', '2024-02-12', 12, 2300, '0555789012', 'mohamed@email.com', 'active'],
+  ['سارة حسن', 'اشتراك 15 حصة', '2024-01-28', 6, 2000, '0555890123', 'sara@email.com', 'active']
+];
+
+const products = [
+  ['بروتين واي', 4500, 25, 'مكملات غذائية', '1234567890123', 5],
+  ['كرياتين مونوهيدرات', 2800, 15, 'مكملات غذائية', '1234567890124', 3],
+  ['مشروب طاقة', 150, 50, 'مشروبات', '1234567890125', 10],
+  ['شيكر بروتين', 800, 20, 'إكسسوارات', '1234567890126', 5],
+  ['قفازات تمرين', 1200, 30, 'إكسسوارات', '1234567890127', 8],
+  ['حزام تمرين', 2500, 12, 'إكسسوارات', '1234567890128', 3],
+  ['مياه معدنية', 50, 100, 'مشروبات', '1234567890129', 20],
+  ['لوح بروتين', 300, 40, 'وجبات خفيفة', '1234567890130', 10],
+  ['أحماض أمينية BCAA', 3200, 18, 'مكملات غذائية', '1234567890131', 5],
+  ['منشفة رياضية', 600, 25, 'إكسسوارات', '1234567890132', 8]
 ];
 
 const attendance = [
-  ['أحمد محمد', '08:30', 'دخول'],
-  ['فاطمة علي', '09:15', 'دخول'],
-  ['خالد حسن', '10:00', 'خروج'],
-  ['مريم سعيد', '10:30', 'دخول'],
-  ['يوسف عمر', '11:00', 'دخول'],
+  ['أحمد محمد علي', '08:30', 'دخول', '2024-01-25'],
+  ['فاطمة سعد الدين', '09:15', 'دخول', '2024-01-25'],
+  ['خالد عبد الرحمن', '10:00', 'خروج', '2024-01-25'],
+  ['مريم أحمد', '10:30', 'دخول', '2024-01-25'],
+  ['يوسف عمر', '11:00', 'دخول', '2024-01-25'],
+  ['نور الهدى', '16:30', 'دخول', '2024-01-25'],
+  ['محمد صالح', '17:00', 'دخول', '2024-01-25'],
+  ['سارة حسن', '18:15', 'خروج', '2024-01-25']
 ];
 
-const subscriptions = [
-  ['سارة أحمد', 'اشتراك شهري عادي', '2024-01-15', 3],
-  ['محمد علي', 'اشتراك 15 حصة', '2024-01-18', 6],
-  ['نور الدين', 'اشتراك شهري مع جهاز المشي', '2024-01-20', 8],
+const sales = [
+  [1, 'بروتين واي', 2, 4500, 9000, '2024-01-25', '10:30'],
+  [3, 'مشروب طاقة', 5, 150, 750, '2024-01-25', '11:15'],
+  [4, 'شيكر بروتين', 1, 800, 800, '2024-01-25', '14:20'],
+  [7, 'مياه معدنية', 10, 50, 500, '2024-01-25', '15:45'],
+  [8, 'لوح بروتين', 3, 300, 900, '2024-01-25', '16:30']
+];
+
+const expenses = [
+  ['فاتورة كهرباء', 15000, 'مرافق', '2024-01-20'],
+  ['صيانة أجهزة', 8500, 'صيانة', '2024-01-22'],
+  ['مواد تنظيف', 2300, 'نظافة', '2024-01-23'],
+  ['راتب مدرب', 45000, 'رواتب', '2024-01-25']
 ];
 
 db.serialize(() => {
-  db.run('DELETE FROM stats');
-  db.run('DELETE FROM attendance');
+  // حذف البيانات القديمة
   db.run('DELETE FROM subscriptions');
+  db.run('DELETE FROM products');
+  db.run('DELETE FROM attendance');
+  db.run('DELETE FROM sales');
+  db.run('DELETE FROM expenses');
 
-  stats.forEach(s => {
-    db.run('INSERT INTO stats (label, value, change, changeType, icon, color) VALUES (?, ?, ?, ?, ?, ?)', s);
-  });
-  attendance.forEach(a => {
-    db.run('INSERT INTO attendance (name, time, type) VALUES (?, ?, ?)', a);
-  });
+  // إدراج البيانات الجديدة
   subscriptions.forEach(sub => {
-    db.run('INSERT INTO subscriptions (name, plan, expires, daysLeft) VALUES (?, ?, ?, ?)', sub);
+    db.run('INSERT INTO subscriptions (name, plan, expires, daysLeft, price, phone, email, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', sub);
   });
+
+  products.forEach(product => {
+    db.run('INSERT INTO products (name, price, quantity, category, barcode, lowStockThreshold) VALUES (?, ?, ?, ?, ?, ?)', product);
+  });
+
+  attendance.forEach(att => {
+    db.run('INSERT INTO attendance (name, time, type, date) VALUES (?, ?, ?, ?)', att);
+  });
+
+  sales.forEach(sale => {
+    db.run('INSERT INTO sales (productId, productName, quantity, unitPrice, total, date, time) VALUES (?, ?, ?, ?, ?, ?, ?)', sale);
+  });
+
+  expenses.forEach(expense => {
+    db.run('INSERT INTO expenses (description, amount, category, date) VALUES (?, ?, ?, ?)', expense);
+  });
+
+  console.log('Database seeded successfully!');
 });
 
 db.close();
